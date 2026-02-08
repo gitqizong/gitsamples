@@ -18,3 +18,9 @@ Run the example:
 ```bash
 python semantic_search.py
 ```
+
+Run the Flask UI:
+
+```bash
+python app.py
+```

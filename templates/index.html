@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Semantic Search</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f4f0;
+        --ink: #1f1b16;
+        --accent: #c04a23;
+        --card: #ffffff;
+        --muted: #6c655f;
+        --border: #e3ded8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Georgia", "Times New Roman", serif;
+        color: var(--ink);
+        background: radial-gradient(circle at top, #fff6ea 0%, var(--bg) 55%);
+      }
+      main {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 48px 20px 64px;
+      }
+      header {
+        margin-bottom: 36px;
+      }
+      h1 {
+        font-size: clamp(2rem, 4vw, 3rem);
+        margin: 0 0 12px;
+        letter-spacing: -0.02em;
+      }
+      p {
+        margin: 0;
+        color: var(--muted);
+      }
+      form {
+        display: flex;
+        gap: 12px;
+        margin: 28px 0 24px;
+      }
+      input[type="text"] {
+        flex: 1;
+        padding: 14px 16px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        font-size: 1rem;
+        background: var(--card);
+      }
+      button {
+        padding: 14px 22px;
+        border-radius: 999px;
+        border: none;
+        background: var(--accent);
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      .results {
+        display: grid;
+        gap: 16px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px 20px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+      }
+      .card h3 {
+        margin: 0 0 8px;
+        font-size: 1.1rem;
+      }
+      .score {
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      .empty {
+        padding: 18px 20px;
+        border: 1px dashed var(--border);
+        border-radius: 16px;
+        color: var(--muted);
+      }
+      @media (max-width: 700px) {
+        form {
+          flex-direction: column;
+        }
+        button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Semantic Search</h1>
+        <p>Search the demo articles using vector embeddings.</p>
+      </header>
+      <form method="post">
+        <input
+          type="text"
+          name="query"
+          placeholder="Try: embedding database"
+          value="{{ query }}"
+        />
+        <button type="submit">Search</button>
+      </form>
+
+      <section class="results">
+        {% if hits %}
+          {% for hit in hits %}
+            <article class="card">
+              <h3>{{ hit.title }}</h3>
+              <div class="score">Distance: {{ "%.4f"|format(hit.score) }}</div>
+            </article>
+          {% endfor %}
+        {% elif query %}
+          <div class="empty">No results for "{{ query }}".</div>
+        {% else %}
+          <div class="empty">Enter a query to see results.</div>
+        {% endif %}
+      </section>
+    </main>
+  </body>
+</html>
