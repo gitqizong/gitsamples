@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File Name Semantic Search</title>
+    <style>
+      :root {
+        --bg-top: #f2f8ff;
+        --bg-bottom: #e8efe6;
+        --ink: #12202a;
+        --muted: #4e5a62;
+        --card: #ffffff;
+        --line: #d2dbe1;
+        --primary: #0f766e;
+        --primary-ink: #ffffff;
+        --danger: #b42318;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+        background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+      }
+      .wrap {
+        max-width: 1024px;
+        margin: 0 auto;
+        padding: 40px 18px 54px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(2rem, 4vw, 2.7rem);
+      }
+      .sub {
+        margin: 0 0 24px;
+        color: var(--muted);
+      }
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 8px 24px rgba(18, 32, 42, 0.08);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      label {
+        display: block;
+        font-size: 0.92rem;
+        margin-bottom: 6px;
+        color: var(--muted);
+      }
+      input[type="text"],
+      input[type="number"] {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        font-size: 0.98rem;
+      }
+      .row {
+        margin-top: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+      .check {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        color: var(--muted);
+      }
+      .buttons {
+        margin-top: 16px;
+        display: flex;
+        gap: 10px;
+      }
+      button {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 16px;
+        cursor: pointer;
+        color: var(--primary-ink);
+        background: var(--primary);
+        font-size: 0.95rem;
+      }
+      .msg {
+        margin-top: 14px;
+        padding: 10px 12px;
+        border-radius: 10px;
+      }
+      .ok {
+        border: 1px solid #99f6e4;
+        background: #f0fdfa;
+      }
+      .err {
+        border: 1px solid #fecaca;
+        background: #fef2f2;
+        color: var(--danger);
+      }
+      .results {
+        margin-top: 20px;
+        display: grid;
+        gap: 10px;
+      }
+      .hit {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px 14px;
+      }
+      .path {
+        margin: 0 0 5px;
+        font-size: 1rem;
+      }
+      .meta {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      @media (max-width: 760px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .buttons {
+          flex-direction: column;
+        }
+        button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <h1>File Name Semantic Search</h1>
+      <p class="sub">Index file names into ChromaDB and query them semantically.</p>
+
+      <form method="post" class="panel">
+        <div class="grid">
+          <div>
+            <label for="persist_path">Chroma Persist Path</label>
+            <input id="persist_path" name="persist_path" type="text" value="{{ form_data.persist_path }}" />
+          </div>
+          <div>
+            <label for="collection_name">Collection Name</label>
+            <input id="collection_name" name="collection_name" type="text" value="{{ form_data.collection_name }}" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex: 1 1 500px;">
+            <label for="directory">Directory to Index</label>
+            <input id="directory" name="directory" type="text" value="{{ form_data.directory }}" placeholder="C:\path\to\folder" />
+          </div>
+        </div>
+
+        <div class="row">
+          <label class="check">
+            <input type="checkbox" name="recursive" {% if form_data.recursive %}checked{% endif %} />
+            Recursive scan
+          </label>
+          <label class="check">
+            <input type="checkbox" name="clear_first" {% if form_data.clear_first %}checked{% endif %} />
+            Clear collection before indexing
+          </label>
+        </div>
+
+        <div class="row">
+          <div style="flex: 1 1 500px;">
+            <label for="query">Search Query</label>
+            <input id="query" name="query" type="text" value="{{ form_data.query }}" placeholder="invoice pdf, january report, etc." />
+          </div>
+          <div style="width: 120px;">
+            <label for="limit">Limit</label>
+            <input id="limit" name="limit" type="number" min="1" max="100" value="{{ form_data.limit }}" />
+          </div>
+        </div>
+
+        <div class="buttons">
+          <button type="submit" name="action" value="index">Index Files</button>
+          <button type="submit" name="action" value="search">Search</button>
+        </div>
+
+        {% if status %}
+          <div class="msg ok">{{ status }}</div>
+        {% endif %}
+        {% if error %}
+          <div class="msg err">{{ error }}</div>
+        {% endif %}
+      </form>
+
+      <section class="results">
+        {% if hits %}
+          {% for hit in hits %}
+            <article class="hit">
+              <p class="path">{{ hit.relative_path }}</p>
+              <p class="meta">
+                file={{ hit.file_name }} | ext={{ hit.extension }} | distance={{ "%.4f"|format(hit.score) }}
+              </p>
+            </article>
+          {% endfor %}
+        {% endif %}
+      </section>
+    </main>
+  </body>
+</html>
+
