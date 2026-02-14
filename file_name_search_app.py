@@ -2,9 +2,16 @@
 
 from __future__ import annotations
 
-from flask import Flask, render_template, request
+from pathlib import Path
 
-from file_name_semantic_search import create_collection, index_file_names, search_file_names
+from flask import Flask, abort, render_template, request, send_file
+
+from file_name_semantic_search import (
+    create_collection,
+    get_hit_by_id,
+    index_file_names,
+    search_file_names,
+)
 
 app = Flask(__name__)
 
@@ -86,6 +93,25 @@ def index() -> str:
     )
 
 
+@app.route("/open/<doc_id>", methods=["GET"])
+def open_file(doc_id: str):
+    persist_path = (request.args.get("persist_path") or DEFAULT_PERSIST_PATH).strip()
+    collection_name = (request.args.get("collection_name") or DEFAULT_COLLECTION_NAME).strip()
+    collection = create_collection(
+        persist_path=persist_path,
+        collection_name=collection_name,
+    )
+    hit = get_hit_by_id(collection, doc_id)
+    if not hit:
+        abort(404, description="Indexed file not found.")
+
+    absolute_path = str(hit.get("absolute_path", "")).strip()
+    file_path = Path(absolute_path)
+    if not absolute_path or not file_path.exists() or not file_path.is_file():
+        abort(404, description="File path no longer exists.")
+
+    return send_file(file_path, as_attachment=False)
+
+
 if __name__ == "__main__":
     app.run(debug=True)
-

@@ -125,6 +125,18 @@
         color: var(--muted);
         font-size: 0.9rem;
       }
+      .actions {
+        margin-top: 8px;
+      }
+      .link {
+        color: var(--primary);
+        text-decoration: none;
+        border-bottom: 1px solid rgba(15, 118, 110, 0.35);
+        padding-bottom: 1px;
+      }
+      .link:hover {
+        opacity: 0.85;
+      }
       @media (max-width: 760px) {
         .grid {
           grid-template-columns: 1fr;
@@ -205,6 +217,14 @@
               <p class="meta">
                 file={{ hit.file_name }} | ext={{ hit.extension }} | distance={{ "%.4f"|format(hit.score) }}
               </p>
+              <p class="actions">
+                <a
+                  class="link"
+                  href="{{ url_for('open_file', doc_id=hit.id, persist_path=form_data.persist_path, collection_name=form_data.collection_name) }}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >View file</a>
+              </p>
             </article>
           {% endfor %}
         {% endif %}
@@ -212,4 +232,3 @@
     </main>
   </body>
 </html>
-

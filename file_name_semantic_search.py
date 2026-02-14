@@ -21,6 +21,24 @@ def create_collection(persist_path: str, collection_name: str) -> chromadb.Colle
     )
 
 
+def get_hit_by_id(collection: chromadb.Collection, doc_id: str) -> dict | None:
+    result = collection.get(ids=[doc_id], include=["metadatas"])
+    ids = result.get("ids", [])
+    metadatas = result.get("metadatas", [])
+    if not ids or not metadatas:
+        return None
+    metadata = metadatas[0] if metadatas else {}
+    if not metadata:
+        return None
+    return {
+        "id": ids[0],
+        "file_name": metadata.get("file_name", ""),
+        "relative_path": metadata.get("relative_path", ""),
+        "absolute_path": metadata.get("absolute_path", ""),
+        "extension": metadata.get("extension", ""),
+    }
+
+
 def index_file_names(
     collection: chromadb.Collection,
     directory: str,
@@ -57,6 +75,7 @@ def index_file_names(
             {
                 "file_name": file_path.name,
                 "relative_path": rel_path,
+                "absolute_path": str(file_path),
                 "extension": file_path.suffix.lstrip("."),
             }
         )
@@ -89,6 +108,7 @@ def search_file_names(
                 "score": distance,
                 "file_name": metadata.get("file_name", ""),
                 "relative_path": metadata.get("relative_path", ""),
+                "absolute_path": metadata.get("absolute_path", ""),
                 "extension": metadata.get("extension", ""),
             }
         )
@@ -164,4 +184,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
